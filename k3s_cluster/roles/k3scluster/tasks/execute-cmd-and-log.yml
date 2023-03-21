@@ -1,0 +1,22 @@
+---
+# Executes the supplied command in the Multipass VM with the supplied IP connecting
+# to the VM using the supplied user and the supplied private key file.
+# The output from the command is logged with the supplied message prefix.
+#
+# Parameters:
+# vm_ip - IP address of the Multipass VM on which to execute the command.
+# vm_command - Command to execute in the Multipass VM.
+# log_msg_prefix - Message to log before the result of the command output.
+# vm_user - User in the Multipass VM used to SSH to the VM with.
+# vm_user_ssh_private_key_file - File containing above user's private key used to SSH to the VM with.
+- name: Execute command on K3S node
+  ansible.builtin.shell: "{{ vm_command }}"
+  register: cmd_output
+  delegate_to: "{{ vm_ip }}"
+  vars:
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
+- name: Log message prefix and the output from the command.
+  ansible.builtin.debug:
+    msg: "{{ log_msg_prefix }}: {{ cmd_output.stdout }}"

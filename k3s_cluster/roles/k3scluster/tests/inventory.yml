@@ -1,0 +1,18 @@
+all:
+  children:
+    # Currently only one master node is supported.
+    # The name of a master node must contain the string "master".
+    master-nodes:
+      hosts:
+        k3s-master:
+          # Multipass VM configuration for the master node.
+          vm_config: "-m 3G --disk 5G 20.04"
+    # Names of K3S agent nodes must contain the string "agent".
+    agent-nodes:
+      hosts:
+        k3s-agent-01:
+          # Multipass VM configuration for agent 1.
+          vm_config: "-m 4G --disk 5G 20.04"
+        k3s-agent-02:
+          # Multipass VM configuration for agent 2.
+          vm_config: "-m 5G --disk 5G 20.04"

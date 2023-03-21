@@ -1,0 +1,14 @@
+---
+# Tasks reading the file containing information on how many
+# Multipass VMs to create for the K3S cluster and the configuration of
+# each VM.
+#
+# Output:
+# k3s_nodes - Dictionary containing key-value pairs where the key
+# is the name of the Multipass VM that is to be created as a node in the
+# K3S cluster and the value is the configuration of the node.
+# The node configuration will be passed verbatim to the Multipass launch command.
+- name: Read K3S cluster node VM configuration from file
+  include_vars:
+    file: configuration/k3s-nodes.yml
+    name: k3s_nodes

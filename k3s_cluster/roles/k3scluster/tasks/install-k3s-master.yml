@@ -1,0 +1,70 @@
+---
+# Installs K3S on a master node with the supplied IP address.
+# Stores the IP address and the access token of the K3S master node in dedicated files
+# as to make them available when installing K3S agent(s) on other host(s).
+#
+# Parameters:
+# vm_ip - IP address of Multipass VM on which to install the K3S master.
+# vm_user - User in the Multipass VM used to SSH to the VM with.
+# vm_user_ssh_private_key_file - File containing above user's private key used to SSH to the VM with.
+# Output:
+# k3s_master_token - Token to be used when installing K3S agents to be managed by master.
+# k3s_master_ip - IP address of K3S master node.
+- name: Delete any existing file containing K3S master node IP address.
+  ansible.builtin.file:
+    path: "{{ k3s_master_ip_file }}"
+    state: absent
+  vars:
+    ansible_connection: local
+- name: Delete any existing file containing K3S master node token.
+  ansible.builtin.file:
+    path: "{{ k3s_master_token_file }}"
+    state: absent
+  vars:
+    ansible_connection: local
+- name: Install K3S on agent node
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
+  vars:
+    vm_command: |
+      curl -sfL https://get.k3s.io | sh -s - --disable=traefik
+    log_msg_prefix: "K3S master installation log"
+- name: Find K3S version
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
+  vars:
+    vm_command: k3s -version
+    log_msg_prefix: "K3S master version"
+- name: Check K3S master configuration
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
+  vars:
+    vm_command: k3s check-config
+    log_msg_prefix: "K3S master check-config result"
+- name: Retrieve the K3S master node token
+  ansible.builtin.shell: cat /var/lib/rancher/k3s/server/node-token
+  become: true
+  register: cmd_output
+  delegate_to: "{{ vm_ip }}"
+  vars:
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
+- name: Save K3S master node token
+  ansible.builtin.set_fact:
+    k3s_master_token: "{{ cmd_output.stdout }}"
+- name: Log K3S master node token
+  ansible.builtin.debug:
+    msg: "K3S master node token: {{ k3s_master_token }}"
+- name: Save K3S master node IP
+  ansible.builtin.set_fact:
+    k3s_master_ip: "{{ vm_ip }}"
+- name: Write K3S master node IP to file to make it globally available
+  ansible.builtin.copy:
+    content: "{{ k3s_master_ip }}"
+    dest: "{{ k3s_master_ip_file }}"
+  vars:
+    ansible_connection: local
+- name: Write K3S master node token to file to make it globally available
+  ansible.builtin.copy:
+    content: "{{ k3s_master_token }}"
+    dest: "{{ k3s_master_token_file }}"
+  vars:
+    ansible_connection: local

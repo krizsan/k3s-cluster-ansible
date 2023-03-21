@@ -1,0 +1,28 @@
+---
+# Main task file for the K3S Cluster role
+
+- name: Delete directory holding temporary files and re-create it.
+  file:
+    state: "{{ item }}"
+    path: "temp/"
+  with_items:
+    - absent
+    - directory
+- name: Create SSH keys and cloudinit configuration file.
+  ansible.builtin.include_tasks: create-keys-and-cloudinit.yml
+  run_once: true
+- name: Delete any existing Multipass VM and create a new one.
+  ansible.builtin.include_tasks: delete-and-create-new-vm.yml
+  vars:
+    vm_creation_parameters: "{{ vm_config }}"
+- name: Retrieve the IP address of the newly created Multipass VM
+  ansible.builtin.include_tasks: get-node-ip.yml
+- name: Log VM IPs
+  ansible.builtin.debug:
+    msg: "VM {{ ansible_host }} has IP address: {{ vm_ip }}"
+- name: Install K3S on a master node
+  ansible.builtin.include_tasks: install-k3s-master.yml
+  when: '"master" in ansible_host'
+- name: Install K3S on agent nodes.
+  ansible.builtin.include_tasks: install-k3s-agent.yml
+  when: '"agent" in ansible_host'

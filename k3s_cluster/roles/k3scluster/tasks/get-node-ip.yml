@@ -1,0 +1,17 @@
+---
+# Retrieves the IP address of the Multipass VM with the supplied name.
+#
+# Parameters:
+# ansible_host - Name of the VM which IP is to be retrieved
+# Output:
+# vm_ip - First IPv4 of Multipass VM.
+- name: Retrieve Multipass VM info
+  ansible.builtin.shell: |
+    multipass info --format yaml {{ ansible_host }}
+  register: vm_info_output
+- name: Extract Multipass VM info YAML from task output
+  ansible.builtin.set_fact:
+    vm_info: "{{ vm_info_output.stdout | from_yaml }}"
+- name: Extract first Multipass VM IPv4
+  ansible.builtin.set_fact:
+    vm_ip: "{{ vm_info[ansible_host][0]['ipv4'][0] }}"

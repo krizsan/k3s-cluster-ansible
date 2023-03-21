@@ -1,0 +1,25 @@
+---
+# Deletes any existing Multipass VM with the supplied name, then creates
+# a new VM with the supplied name is created with the supplied parameters.
+# Prerequisites:
+# A SSH keypair that will be used as one option to log into the new VM must exist.
+# A cloud-init configuration file named "cloud-init.yaml" that will be used
+# when creating the new VM must exist.
+# Parameters:
+# ansible_host - Name of the VM that is to be created.
+# vm_creation_parameters - Parameters that will be used when creating the new VM
+# with Multipass.
+- name: Delete any existing VM
+  ansible.builtin.shell: |
+    multipass info {{ ansible_host }} > /dev/null 2> /dev/null
+    if [ $? -eq 0 ]; then
+      multipass delete {{ ansible_host }}
+      multipass purge
+    fi
+- name: Create new Multipass VM
+  ansible.builtin.shell: |
+    multipass launch \
+    --name {{ ansible_host }} \
+    --cloud-init temp/cloud-init.yaml \
+    {{ vm_creation_parameters }}
+

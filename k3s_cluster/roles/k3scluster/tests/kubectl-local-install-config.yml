@@ -1,0 +1,96 @@
+---
+# Install and configure kubectl as to be able to manage the K3S cluster
+# running in Multipass VMs.
+#
+# Variables:
+# k3s_master_ip - IP address of Multipass VM in which the K3S master is running.
+# vm_user - User in the Multipass VM used to SSH to the VM with.
+# vm_user_ssh_private_key_file - File containing above user's private key used to SSH to the VM with.
+- name: Install and configure kubectl
+  hosts: master-nodes
+  vars:
+    vm_user: "vmadmin"
+    vm_user_ssh_private_key_file: "multipass-certs/user_key"
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+    ansible_connection: local
+    client_key_file: "temp/k3s_client_key"
+    client_certificate_file: "temp/k3s_client_certificate"
+    cluster_certificate_authority_file: "temp/k3s_cluster_certificate_authority"
+    k3s_cluster_user: "k3s_user"
+    k3s_cluster: "k3s"
+    k3s_context: "k3s_context"
+  tasks:
+    - name: Obtain IP address of K3S cluster master node
+      ansible.builtin.include_role:
+        name: k3scluster
+        tasks_from: get-node-ip
+    - name: Store K3S master node IP address
+      ansible.builtin.set_fact:
+        k3s_master_ip: "{{ vm_ip }}"
+    - name: Retrieve K3S master kubectl configuration from K3S master node
+      ansible.builtin.shell: kubectl config view --minify --flatten
+      become: true
+      register: master_kubectl_config_yaml
+      delegate_to: "{{ k3s_master_ip }}"
+      vars:
+        ansible_user: "{{ vm_user }}"
+        ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+        ansible_connection: ssh
+    - name: Parse kubectl configuration YAML
+      ansible.builtin.set_fact:
+        master_kubectl_config: "{{ master_kubectl_config_yaml.stdout | from_yaml }}"
+    - name: Retrieve kubectl user client certificate data from K3S kubectl configuration.
+      ansible.builtin.set_fact:
+        kubectl_client_certificate_data: "{{ master_kubectl_config['users'][0]['user']['client-certificate-data'] }}"
+    - name: Write user client certificate to file.
+      ansible.builtin.copy:
+        content: "{{ kubectl_client_certificate_data | b64decode }}"
+        dest: "{{ client_certificate_file }}"
+    # User client key from K3S kubectl configuration
+    - name: Retrieve kubectl user client key data
+      ansible.builtin.set_fact:
+        kubectl_client_key_data: "{{ master_kubectl_config['users'][0]['user']['client-key-data'] }}"
+    - name: Write user client key to file
+      ansible.builtin.copy:
+        content: "{{ kubectl_client_key_data | b64decode }}"
+        dest: "{{ client_key_file }}"
+    # Cluster certificate authority from K3S kubectl configuration
+    - name: Retrieve kubectl cluster certificate-authority-data
+      ansible.builtin.set_fact:
+        kubectl_cluster_certificate_authority_data: "{{ master_kubectl_config['clusters'][0]['cluster']['certificate-authority-data'] }}"
+    - name: Write cluster certificate authority to file
+      ansible.builtin.copy:
+        content: "{{ kubectl_cluster_certificate_authority_data | b64decode }}"
+        dest: "{{ cluster_certificate_authority_file }}"
+    # Create or re-create a K3S cluster in the local kubectl configuration
+    - name: Delete any existing K3S cluster in the local kubectl configuration
+      ansible.builtin.shell: kubectl config delete-cluster {{ k3s_cluster }}
+      ignore_errors: true
+    - name: Add a K3S cluster to the local kubectl configuration
+      ansible.builtin.shell: |
+        kubectl config set-cluster {{ k3s_cluster }} \
+        --server=https://{{ k3s_master_ip }}:6443 \
+        --certificate-authority={{ cluster_certificate_authority_file }}
+    # Create or re-create a K3S user in the local kubectl configuration
+    - name: Delete any existing user in the local kubectl configuration
+      ansible.builtin.shell: kubectl config delete-user {{ k3s_cluster_user }}
+      ignore_errors: true
+    - name: Add the K3S user to the local kubectl configuration
+      ansible.builtin.shell: |
+        kubectl config set-credentials {{ k3s_cluster_user }} \
+        --client-certificate={{ client_certificate_file }} \
+        --client-key={{ client_key_file }}
+    # Create or re-create a context in the local kubectl configuration that connects
+    # the cluster and the user created earlier
+    - name: Delete any existing context in the local kubectl configuration
+      ansible.builtin.shell: kubectl config delete-context {{ k3s_context }}
+      ignore_errors: true
+    - name: Create the K3S context in the local kubectl configuration
+      ansible.builtin.shell: |
+        kubectl config set-context {{ k3s_context }} \
+        --cluster={{ k3s_cluster }} \
+        --user={{ k3s_cluster_user }}
+    # Set the current context to the K3S context
+    - name: Set the current kubectl context to the K3S context
+      ansible.builtin.shell: |
+        kubectl config use-context {{ k3s_context }}

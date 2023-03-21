@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include k3scluster"
+      include_role:
+        name: "k3scluster"

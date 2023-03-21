@@ -1,0 +1,38 @@
+---
+# Installs K3S on an agent node with the supplied IP address.
+# A file containing the K3S master node IP address must exist and contain the
+# valid IP address of a running K3S master node.
+#
+# Parameters:
+# vm_ip - IP address of Multipass VM on which to install the K3S agent.
+# vm_user - User in the Multipass VM used to SSH to the VM with.
+# vm_user_ssh_private_key_file - File containing above user's private key used to SSH to the VM with.
+# k3s_master_token - Token of K3S master that is to manage the agent.
+- name: Read K3S master node IP address from file
+  ansible.builtin.set_fact:
+    k3s_master_ip: "{{ lookup('file', k3s_master_ip_file) }}"
+  vars:
+    ansible_connection: local
+- name: Read K3S master node token from file
+  ansible.builtin.set_fact:
+    k3s_master_token: "{{ lookup('file', k3s_master_token_file) }}"
+  vars:
+    ansible_connection: local
+- name: Install K3S on agent node and log result
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
+  vars:
+    vm_command: |
+      curl -sfL https://get.k3s.io \
+      | K3S_URL="https://{{ k3s_master_ip }}:6443" \
+      K3S_TOKEN="{{ k3s_master_token }}" sh -
+    log_msg_prefix: "K3S agent installation log"
+- name: Find and log K3S version
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
+  vars:
+    vm_command: k3s -version
+    log_msg_prefix: "K3S agent version"
+- name: Check K3S agent configuration
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
+  vars:
+    vm_command: k3s check-config
+    log_msg_prefix: "K3S agent check-config result"
