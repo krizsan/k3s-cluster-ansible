@@ -3,7 +3,6 @@
 # running in Multipass VMs.
 #
 # Variables:
-# k3s_master_ip - IP address of Multipass VM in which the K3S master is running.
 # vm_user - User in the Multipass VM used to SSH to the VM with.
 # vm_user_ssh_private_key_file - File containing above user's private key used to SSH to the VM with.
 - name: Install and configure kubectl
