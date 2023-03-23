@@ -1,0 +1,6 @@
+users:
+  - default
+  - name: {{ vm_user }}
+    sudo:  ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - {{ public_key }}

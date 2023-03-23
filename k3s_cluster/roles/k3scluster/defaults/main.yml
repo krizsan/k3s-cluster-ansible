@@ -1,2 +1,10 @@
 ---
-# defaults file for k3scluster
+# There must be no '.' in the tempfiles path!
+tempfiles_root: "~/k3scluster"
+k3s_master_ip_file: "{{ tempfiles_root }}/temp/k3s-master-ip.txt"
+k3s_master_token_file: "{{ tempfiles_root }}/temp/k3s-master-token.txt"
+
+vm_user: "vmadmin"
+vm_user_ssh_private_key_file: "{{ tempfiles_root }}/multipass-certs/user_key"
+
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no"

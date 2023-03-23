@@ -1,0 +1,19 @@
+---
+# Deletes directories used by the role and all files in the directories
+# and then re-create the empty directories.
+- name: Delete directories used by the role
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ tempfiles_root }}/multipass-certs"
+    - "{{ tempfiles_root }}/temp"
+  delegate_to: localhost
+- name: Create directories used by the role
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ tempfiles_root }}/multipass-certs"
+    - "{{ tempfiles_root }}/temp"
+  delegate_to: localhost

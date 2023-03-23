@@ -1,0 +1,10 @@
+---
+- name: Prepares for Molecule tests
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_connection: local
+  tasks:
+  - name: Prepare
+    ansible.builtin.debug:
+      msg: "Prepare completed!"

@@ -2,12 +2,41 @@
 dependency:
   name: galaxy
 driver:
-  name: docker
+  name: delegated
 platforms:
-  - name: instance
-    image: quay.io/centos/centos:stream8
-    pre_build_image: true
+  - name: "k3s-master"
+    groups:
+      - master-nodes
+  - name: "k3s-agent-01"
+    groups:
+      - agent-nodes
+  - name: "k3s-agent-02"
+    groups:
+      - agent-nodes
 provisioner:
   name: ansible
+  inventory:
+    host_vars:
+      k3s-master:
+        vm_config: "-m 3G --disk 5G 20.04"
+      k3s-agent-01:
+        vm_config: "-m 4G --disk 5G 20.04"
+      k3s-agent-02:
+        vm_config: "-m 5G --disk 5G 20.04"
+scenario:
+  name: default
+  test_sequence:
+    - destroy
+    - create
+    - prepare
+    - converge
+    # Idempotence has been removed.
+    # - lint
+    - verify
+    - cleanup
+    - destroy
 verifier:
   name: ansible
+# lint: |
+#   set -e
+#   ansible-lint .

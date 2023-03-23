@@ -1,13 +1,9 @@
 ---
 # Main task file for the K3S Cluster role
 
-- name: Delete directory holding temporary files and re-create it.
-  file:
-    state: "{{ item }}"
-    path: "temp/"
-  with_items:
-    - absent
-    - directory
+- name: Delete and create directories used by role
+  ansible.builtin.include_tasks: create-directories.yml
+  run_once: true
 - name: Create SSH keys and cloudinit configuration file.
   ansible.builtin.include_tasks: create-keys-and-cloudinit.yml
   run_once: true

@@ -1,0 +1,16 @@
+---
+- name: Cleanup after Molecule tests deleting all the Multipass VMs
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_connection: local
+  tasks:
+    - name: Delete Multipass VM
+      ansible.builtin.shell: |
+        multipass info {{ ansible_host }} > /dev/null 2> /dev/null
+        if [ $? -eq 0 ]; then
+          multipass delete {{ ansible_host }}
+        fi
+    - name: Purge Multipass VMs
+      ansible.builtin.shell: |
+        multipass purge

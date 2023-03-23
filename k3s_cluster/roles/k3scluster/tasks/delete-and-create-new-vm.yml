@@ -20,6 +20,6 @@
   ansible.builtin.shell: |
     multipass launch \
     --name {{ ansible_host }} \
-    --cloud-init temp/cloud-init.yaml \
+    --cloud-init {{ tempfiles_root }}/temp/cloud-init.yaml \
     {{ vm_creation_parameters }}
 

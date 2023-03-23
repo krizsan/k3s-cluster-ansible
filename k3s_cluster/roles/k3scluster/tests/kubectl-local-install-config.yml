@@ -9,12 +9,12 @@
   hosts: master-nodes
   vars:
     vm_user: "vmadmin"
-    vm_user_ssh_private_key_file: "multipass-certs/user_key"
+    vm_user_ssh_private_key_file: "{{ tempfiles_root }}/multipass-certs/user_key"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ansible_connection: local
-    client_key_file: "temp/k3s_client_key"
-    client_certificate_file: "temp/k3s_client_certificate"
-    cluster_certificate_authority_file: "temp/k3s_cluster_certificate_authority"
+    client_key_file: "{{ tempfiles_root }}/temp/k3s_client_key"
+    client_certificate_file: "{{ tempfiles_root }}/temp/k3s_client_certificate"
+    cluster_certificate_authority_file: "{{ tempfiles_root }}/temp/k3s_cluster_certificate_authority"
     k3s_cluster_user: "k3s_user"
     k3s_cluster: "k3s"
     k3s_context: "k3s_context"
