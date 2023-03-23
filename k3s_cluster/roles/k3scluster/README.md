@@ -15,11 +15,16 @@ None.
 
 Example Playbook
 ----------------
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Please refer to the example playbook in test/k3s-cluster-playbook.yml.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+Usage
+-----
+A K3S cluster can be started using Molecule whe, developing the role:<br/>
+1. ```cd k3s_cluster/roles/k3scluster```<br/>
+2. ```molecule destroy --all```<br/>
+3. ```molecule converge```<br/>
+4. Finally, to delete the K3S cluster and the Multipass virtual machine it runs in:<br/>
+```molecule destroy --all```<br/>
 
 License
 -------
@@ -27,4 +32,5 @@ Apache 2.0
 
 Author Information
 ------------------
+Ivan Krizsan
 https://ivankrizsan.se

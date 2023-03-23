@@ -24,8 +24,16 @@
     vm_command: |
       curl -sfL https://get.k3s.io \
       | K3S_URL="https://{{ k3s_master_ip }}:6443" \
+      INSTALL_K3S_CHANNEL=latest \
       K3S_TOKEN="{{ k3s_master_token }}" sh -
     log_msg_prefix: "K3S agent installation log"
+- name: Wait for K3S master to become ready
+  ansible.builtin.wait_for:
+    host: "{{ k3s_master_ip }}"
+    port: 6443
+    delay: 10
+  vars:
+    ansible_connection: local
 - name: Find and log K3S version
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:

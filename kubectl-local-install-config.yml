@@ -9,19 +9,31 @@
   hosts: master-nodes
   vars:
     vm_user: "vmadmin"
-    vm_user_ssh_private_key_file: "{{ tempfiles_root }}/multipass-certs/user_key"
+    tempfiles_root_rel: "~/k3scluster"
     ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     ansible_connection: local
-    client_key_file: "{{ tempfiles_root }}/temp/k3s_client_key"
-    client_certificate_file: "{{ tempfiles_root }}/temp/k3s_client_certificate"
-    cluster_certificate_authority_file: "{{ tempfiles_root }}/temp/k3s_cluster_certificate_authority"
     k3s_cluster_user: "k3s_user"
     k3s_cluster: "k3s"
     k3s_context: "k3s_context"
   tasks:
+    - name: Find absolute path to tempfiles root
+      ansible.builtin.shell: "echo {{ tempfiles_root_rel }}"
+      register: tempfiles_root_out
+      delegate_to: localhost
+    - name: Retrieve absolute path to tempfiles root
+      ansible.builtin.set_fact:
+        tempfiles_root: "{{ tempfiles_root_out.stdout }}"
+    - name: Set paths where tempfiles root is used
+      ansible.builtin.set_fact:
+        vm_user_ssh_private_key_file: "{{ tempfiles_root  }}/multipass-certs/user_key"
+        client_key_file: "{{ tempfiles_root }}/temp/k3s_client_key"
+        client_certificate_file: "{{ tempfiles_root }}/temp/k3s_client_certificate"
+        cluster_certificate_authority_file: "{{ tempfiles_root }}/temp/k3s_cluster_certificate_authority"
+    - ansible.builtin.debug:
+        msg: "Using client certificate file: {{ vm_user_ssh_private_key_file }}"
     - name: Obtain IP address of K3S cluster master node
       ansible.builtin.include_role:
-        name: k3scluster
+        name: ivankrizsan.k3s_cluster.k3scluster
         tasks_from: get-node-ip
     - name: Store K3S master node IP address
       ansible.builtin.set_fact:
@@ -35,6 +47,7 @@
         ansible_user: "{{ vm_user }}"
         ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
         ansible_connection: ssh
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     - name: Parse kubectl configuration YAML
       ansible.builtin.set_fact:
         master_kubectl_config: "{{ master_kubectl_config_yaml.stdout | from_yaml }}"

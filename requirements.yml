@@ -1,0 +1,8 @@
+---
+collections:
+  # In this location, an HTTPS as well as SSH link to the git repository may be used.
+  # Using SSH will require an SSH key while HTTPS allow for anonymous access
+  # provided that the repository is publicly available.
+  - name: https://github.com/krizsan/k3s-cluster-ansible.git
+    type: git
+    version: master

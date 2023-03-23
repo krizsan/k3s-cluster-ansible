@@ -25,8 +25,7 @@
 - name: Install K3S on agent node
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
-    vm_command: |
-      curl -sfL https://get.k3s.io | sh -s - --disable=traefik
+    vm_command: "curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest sh -"
     log_msg_prefix: "K3S master installation log"
 - name: Find K3S version
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
