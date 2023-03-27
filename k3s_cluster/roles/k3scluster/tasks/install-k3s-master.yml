@@ -22,27 +22,35 @@
     state: absent
   vars:
     ansible_connection: local
-- name: Install K3S on agent node
+- name: Install K3S on master node
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
     vm_command: "curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest sh -"
     log_msg_prefix: "K3S master installation log"
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
 - name: Find K3S version
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
     vm_command: k3s -version
     log_msg_prefix: "K3S master version"
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
 - name: Check K3S master configuration
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
     vm_command: k3s check-config
     log_msg_prefix: "K3S master check-config result"
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
 - name: Retrieve the K3S master node token
-  ansible.builtin.shell: cat /var/lib/rancher/k3s/server/node-token
-  become: true
-  register: cmd_output
-  delegate_to: "{{ vm_ip }}"
+  ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
+    vm_command: "sudo cat /var/lib/rancher/k3s/server/node-token"
+    log_msg_prefix: "K3S master token"
     ansible_user: "{{ vm_user }}"
     ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
     ansible_connection: ssh
@@ -55,6 +63,8 @@
 - name: Save K3S master node IP
   ansible.builtin.set_fact:
     k3s_master_ip: "{{ vm_ip }}"
+# The K3S master node IP address is stored in a file in order to be made available
+# when installing K3S on the agent nodes.
 - name: Write K3S master node IP to file to make it globally available
   ansible.builtin.copy:
     content: "{{ k3s_master_ip }}"

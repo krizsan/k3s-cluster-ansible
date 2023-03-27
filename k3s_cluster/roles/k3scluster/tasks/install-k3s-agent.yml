@@ -27,20 +27,22 @@
       INSTALL_K3S_CHANNEL=latest \
       K3S_TOKEN="{{ k3s_master_token }}" sh -
     log_msg_prefix: "K3S agent installation log"
-- name: Wait for K3S master to become ready
-  ansible.builtin.wait_for:
-    host: "{{ k3s_master_ip }}"
-    port: 6443
-    delay: 10
-  vars:
-    ansible_connection: local
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
 - name: Find and log K3S version
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
     vm_command: k3s -version
     log_msg_prefix: "K3S agent version"
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh
 - name: Check K3S agent configuration
   ansible.builtin.include_tasks: execute-cmd-and-log.yml
   vars:
     vm_command: k3s check-config
     log_msg_prefix: "K3S agent check-config result"
+    ansible_user: "{{ vm_user }}"
+    ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
+    ansible_connection: ssh

@@ -23,6 +23,9 @@
     - name: Retrieve absolute path to tempfiles root
       ansible.builtin.set_fact:
         tempfiles_root: "{{ tempfiles_root_out.stdout }}"
+    - name: Log tempfiles root
+      ansible.builtin.debug:
+        msg: "********** {{ tempfiles_root }}"
     - name: Set paths where tempfiles root is used
       ansible.builtin.set_fact:
         vm_user_ssh_private_key_file: "{{ tempfiles_root  }}/multipass-certs/user_key"
@@ -39,18 +42,18 @@
       ansible.builtin.set_fact:
         k3s_master_ip: "{{ vm_ip }}"
     - name: Retrieve K3S master kubectl configuration from K3S master node
-      ansible.builtin.shell: kubectl config view --minify --flatten
-      become: true
-      register: master_kubectl_config_yaml
-      delegate_to: "{{ k3s_master_ip }}"
+      ansible.builtin.include_role:
+        name: ivankrizsan.k3s_cluster.k3scluster
+        tasks_from: execute-cmd-and-log.yml
       vars:
+        vm_command: "sudo kubectl config view --minify --flatten"
+        log_msg_prefix: "K3S master token"
         ansible_user: "{{ vm_user }}"
         ansible_ssh_private_key_file: "{{ vm_user_ssh_private_key_file }}"
         ansible_connection: ssh
-        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
     - name: Parse kubectl configuration YAML
       ansible.builtin.set_fact:
-        master_kubectl_config: "{{ master_kubectl_config_yaml.stdout | from_yaml }}"
+        master_kubectl_config: "{{ cmd_output.stdout | from_yaml }}"
     - name: Retrieve kubectl user client certificate data from K3S kubectl configuration.
       ansible.builtin.set_fact:
         kubectl_client_certificate_data: "{{ master_kubectl_config['users'][0]['user']['client-certificate-data'] }}"

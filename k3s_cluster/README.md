@@ -12,3 +12,5 @@ From the root of this project:
 4. Verify K3S cluster:<br/>
    ```kubectl cluster-info```<br/>
    ```kubectl get nodes```<br/>
+
+The K3S cluster is defined in the inventory.yml file. Currently only one master node per cluster is supported.

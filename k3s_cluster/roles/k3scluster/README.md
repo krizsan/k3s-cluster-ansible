@@ -15,7 +15,7 @@ None.
 
 Example Playbook
 ----------------
-Please refer to the example playbook in test/k3s-cluster-playbook.yml.
+Please refer to the example playbook k3s-cluster-playbook.yml in the project root.
 
 Usage
 -----

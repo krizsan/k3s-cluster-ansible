@@ -1,7 +1,9 @@
 ---
+# K3S Cluster defaults
+#
 # There must be no '.' in the tempfiles path!
 # If the tempfiles_root variable is modified here, do also modify the value
-# in the file k3s_cluster/roles/k3scluster/tests/kubectl-local-install-config.yml
+# in the file kubectl-local-install-config.yml in the project root.
 tempfiles_root: "~/k3scluster"
 k3s_master_ip_file: "{{ tempfiles_root }}/temp/k3s-master-ip.txt"
 k3s_master_token_file: "{{ tempfiles_root }}/temp/k3s-master-token.txt"
