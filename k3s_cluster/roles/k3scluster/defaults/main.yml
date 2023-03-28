@@ -12,3 +12,8 @@ vm_user: "vmadmin"
 vm_user_ssh_private_key_file: "{{ tempfiles_root }}/multipass-certs/user_key"
 
 ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+# Command that installs K3S master on a master node
+k3s_install_master_cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest sh -"
+# Command that installs K3S agent on an agent node
+k3s_install_agent_cmd: 'curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_master_ip }}:6443" INSTALL_K3S_CHANNEL=latest K3S_TOKEN="{{ k3s_master_token }}" sh -'
