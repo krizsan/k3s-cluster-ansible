@@ -1,6 +1,8 @@
 ---
-# Install and configure kubectl as to be able to manage the K3S cluster
+# Configures a previously installed kubectl as to be able to manage the K3S cluster
 # running in Multipass VMs.
+# The K3S cluster must be created and, as a minimum, the master node must be running in order for
+# this playbook to be able to retrieve the information necessary to configure kubectl.
 #
 # Variables:
 # vm_user - User in the Multipass VM used to SSH to the VM with.
@@ -23,10 +25,7 @@
     - name: Retrieve absolute path to tempfiles root
       ansible.builtin.set_fact:
         tempfiles_root: "{{ tempfiles_root_out.stdout }}"
-    - name: Log tempfiles root
-      ansible.builtin.debug:
-        msg: "********** {{ tempfiles_root }}"
-    - name: Set paths where tempfiles root is used
+    - name: Set paths in which tempfiles root is used
       ansible.builtin.set_fact:
         vm_user_ssh_private_key_file: "{{ tempfiles_root  }}/multipass-certs/user_key"
         client_key_file: "{{ tempfiles_root }}/temp/k3s_client_key"
@@ -84,6 +83,7 @@
     - name: Add a K3S cluster to the local kubectl configuration
       ansible.builtin.shell: |
         kubectl config set-cluster {{ k3s_cluster }} \
+        --embed-certs \
         --server=https://{{ k3s_master_ip }}:6443 \
         --certificate-authority={{ cluster_certificate_authority_file }}
     # Create or re-create a K3S user in the local kubectl configuration
@@ -93,6 +93,7 @@
     - name: Add the K3S user to the local kubectl configuration
       ansible.builtin.shell: |
         kubectl config set-credentials {{ k3s_cluster_user }} \
+        --embed-certs \
         --client-certificate={{ client_certificate_file }} \
         --client-key={{ client_key_file }}
     # Create or re-create a context in the local kubectl configuration that connects
@@ -109,3 +110,12 @@
     - name: Set the current kubectl context to the K3S context
       ansible.builtin.shell: |
         kubectl config use-context {{ k3s_context }}
+    # Delete the files containing client certificate, client key and cluster certificate authority
+    - name: Delete certificate files used when configuring kubectl
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ client_certificate_file }}"
+        - "{{ client_key_file }}"
+        - "{{ cluster_certificate_authority_file }}"

@@ -1,19 +1,41 @@
 ---
 # K3S Cluster defaults
 #
+# Path to directory that will be used to write data related to the K3S cluster to.
+# Data in this directory include:
+# - Cloud-init configuration used when creating Multipass VMs.
+# - Public and private key of user Ansible will use to log in to the Multipass VMs created for the cluster.
+# - IP address of K3S master node.
+# - K3S master node token.
+# - K3S cluster certificate authority. Will be deleted after kubectl configuration.
+# - K3S client certificate and key. Will be deleted after kubectl configuration.
+#
 # There must be no '.' in the tempfiles path!
 # If the tempfiles_root variable is modified here, do also modify the value
 # in the file kubectl-local-install-config.yml in the project root.
 tempfiles_root: "~/k3scluster"
+# Path to file to which IP address of the K3S cluster master node will be written.
 k3s_master_ip_file: "{{ tempfiles_root }}/temp/k3s-master-ip.txt"
+# Path to file in which the K3S master node token will be stored.
+# This token is used during installation of K3S agent nodes.
 k3s_master_token_file: "{{ tempfiles_root }}/temp/k3s-master-token.txt"
 
+# Name of user for which a password-less certificate-based account will be created.
+# This used is used to connect to the Multipass virtual machines during the creation of the K3S cluster.
 vm_user: "vmadmin"
+# Path to the above user's private key.
 vm_user_ssh_private_key_file: "{{ tempfiles_root }}/multipass-certs/user_key"
 
+# Disable strict host checking when connecting to Multipass VMs with Ansible.
 ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
 # Command that installs K3S master on a master node
 k3s_install_master_cmd: "curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=latest sh -"
 # Command that installs K3S agent on an agent node
 k3s_install_agent_cmd: 'curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_master_ip }}:6443" INSTALL_K3S_CHANNEL=latest K3S_TOKEN="{{ k3s_master_token }}" sh -'
+
+# Default Ansible connection for the K3S cluster role is local connection.
+# This is due to the fact that there are no IP addresses to the nodes in the cluster
+# since the Multipass VMs are created by the role and the IP addresses discovered during
+# execution of the role.
+ansible_connection: local

@@ -1,15 +1,8 @@
 ---
 - name: K3S Cluster
-  hosts: master-nodes:agent-nodes
+  hosts: all
   gather_facts: false
   tasks:
     - name: Create the K3S cluster
       ansible.builtin.include_role:
         name: ivankrizsan.k3s_cluster.k3scluster
-      vars:
-        vm_user: "vmadmin"
-        vm_user_ssh_private_key_file: "{{ tempfiles_root }}/multipass-certs/user_key"
-        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
-        ansible_connection: local
-        k3s_master_ip_file: "{{ tempfiles_root }}/temp/k3s-master-ip.txt"
-        k3s_master_token_file: "{{ tempfiles_root }}/temp/k3s-master-token.txt"

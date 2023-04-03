@@ -7,7 +7,7 @@
 - name: Create SSH keys and cloudinit configuration file.
   ansible.builtin.include_tasks: create-keys-and-cloudinit.yml
   run_once: true
-- name: Delete any existing Multipass VM and create a new one.
+- name: Delete any existing Multipass VM and create a new one
   ansible.builtin.include_tasks: delete-and-create-new-vm.yml
   vars:
     vm_creation_parameters: "{{ vm_config }}"
@@ -19,6 +19,6 @@
 - name: Install K3S on a master node
   ansible.builtin.include_tasks: install-k3s-master.yml
   when: '"master" in ansible_host'
-- name: Install K3S on agent nodes.
+- name: Install K3S on agent nodes
   ansible.builtin.include_tasks: install-k3s-agent.yml
   when: '"agent" in ansible_host'
