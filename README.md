@@ -1,6 +1,14 @@
 # k3s-cluster-ansible
 Ansible role that automates the creation of a K3S cluster running in Multipass virtual machines.
 
+Prerequisites
+-------------
+Using this Ansible role to create a K3S cluster according to the instructions below require the following:<br/>
+- Multipass
+- Ansible
+- Molecule
+- Kubectl
+
 Usage
 -----
 From the root of this project:
