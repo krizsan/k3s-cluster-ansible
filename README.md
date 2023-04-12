@@ -20,4 +20,4 @@ From the root of this project:
 The K3S cluster is defined in the inventory.yml file. Currently only one master node per cluster is supported.
 <br/><br/>
 Please refer to the README in the k3scluster role (k3s_cluster/roles/k3scluster/README.md)
-for instructions on how to set up a K3S cluster using Molecule and this collection.
+for instructions on how to set up a K3S cluster using Molecule.
