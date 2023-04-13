@@ -1,8 +1,8 @@
 ---
-# Creates vmadmin keypair that will be used to log into the Multipass VMs
+# Creates VM admin keypair that will be used to log into the Multipass VMs
 # and the cloud-init file use when create the VMs.
-- name: Create vmadmin key-pair
-  ansible.builtin.shell: ssh-keygen -C vmadmin -N "" -f {{ tempfiles_root }}/multipass-certs/user_key
+- name: Create VM admin key-pair
+  ansible.builtin.shell: ssh-keygen -C {{ vm_user }} -N "" -f {{ tempfiles_root }}/multipass-certs/user_key
   delegate_to: localhost
 - name: Create cloud-init file inserting the public key
   ansible.builtin.template:
